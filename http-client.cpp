@@ -6,6 +6,7 @@ WiFiClient wifiClient;
 
 const char* ssid = "ssid";
 const char* password = "pass";
+const int LED = 2;
 
 const char* serverIp = "192.168.1.120";
 
@@ -27,6 +28,11 @@ void setup() {
     http.begin(wifiClient,serverIp);
     
     int httpCode = http.GET();
+    
+    if (httpCode == 200){
+      digitalWrite(LED, HIGH);
+    }
+
     Serial.printf("HTTP code:%d \n", httpCode);
     String response = http.getString();
     Serial.println("response:");
