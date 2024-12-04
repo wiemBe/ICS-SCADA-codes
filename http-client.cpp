@@ -3,51 +3,58 @@
 #include <WiFiClient.h>
 
 WiFiClient wifiClient;
+HTTPClient http;
 
 const char* ssid = "ssid";
-const char* password = "pass";
+const char* password = "passw";
+
 const int LED = 2;
 
-const char* serverIp = "192.168.1.120";
-
+const char* serverUrl = "http://192.168.54.219";
 
 void setup() {
-  Serial.begin(115200);
-    
+  Serial.begin(9600);
+
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
+
   Serial.printf("Connecting to %s", ssid);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-      delay(1000);
-      Serial.print(".");
+    delay(1000);
+    Serial.print(".");
   }
   Serial.println("\nConnected to Wi-Fi");
-  Serial.println(WiFi.localIP());  
-  
-  if(WiFi.status() == WL_CONNECTED){
-    HTTPClient http;
-    http.begin(wifiClient,serverIp);
-    
-    int httpCode = http.GET();
-    
-    if (httpCode == 200){
-      digitalWrite(LED, HIGH);
-    }
-
-    Serial.printf("HTTP code:%d \n", httpCode);
-    String response = http.getString();
-    Serial.println("response:");
-    Serial.println(response);
-
-    http.end();
-    
-    }else{
-      Serial.printf("get failed\n");
-    }
-
-  
-
+  Serial.println(WiFi.localIP());
 }
 
 void loop() {
-  
+  if (WiFi.status() == WL_CONNECTED) {
+    http.begin(wifiClient, serverUrl);
+    int httpCode = http.GET();
+
+    if (httpCode == 200) {
+      digitalWrite(LED, HIGH);
+    } else {
+      Serial.printf("HTTP error code: %d\n", httpCode);
+      digitalWrite(LED, LOW);
+    }
+
+    String response = http.getString();
+    Serial.println("Response:");
+    Serial.println(response);
+
+    http.end();
+  } else {
+    Serial.println("Wi-Fi disconnected! Reconnecting...");
+    WiFi.disconnect();
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(1000);
+      Serial.print(".");
+    }
+    Serial.println("\nReconnected to Wi-Fi");
+  }
+
+  delay(5000); 
 }
